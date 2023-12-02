@@ -24,16 +24,6 @@ const {
         }
     }
     
-    ideasRouter.use('/', (req, res, next)=>{
-        const ideas = getAllFromDatabase('ideas');
-        if(typeof ideas === 'undefined'){
-            return res.status(404).send('not found');
-        } else {
-            req.ideas = ideas;
-            next();
-        }
-    })
-    
     ideasRouter.param('ideaId', (req, res, next, id)=>{
         const ideaId = id;
         const foundIdea = getFromDatabaseById('ideas', ideaId);
@@ -50,8 +40,13 @@ const {
     
 
     ideasRouter.get('/', (req, res, next)=>{
-        const ideas = req.ideas;
-        res.status(200).json(ideas); 
+        const ideas = getAllFromDatabase('ideas');
+        //console.log(ideas)
+        if(ideas){
+            res.status(200).json(ideas);
+        } else {
+            res.status(404).send();
+        }  
     })
 
 

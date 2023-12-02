@@ -21,16 +21,6 @@ const isValid = (req, res, next)=>{
     }
 }
 
-minionsRouter.use('/', (req, res, next)=>{
-    const minions = getAllFromDatabase('minions');
-    if(typeof minions === 'undefined'){
-        return res.status(404).send('not found');
-    } else {
-        req.minions = minions;
-        next();
-    }
-})
-
 minionsRouter.param('minionId', (req, res, next, id)=>{
     const minionId = id;
     const foundMinion = getFromDatabaseById('minions', minionId);
@@ -46,10 +36,15 @@ minionsRouter.param('minionId', (req, res, next, id)=>{
 })
 
 minionsRouter.get('/', (req, res, next)=>{
-    const minions = req.minions;
+    const minions = getAllFromDatabase('minions');
     //console.log(minions)
-    res.status(200).json(minions);  
+    if(minions){
+        res.status(200).json(minions);
+    } else {
+        res.status(404).send();
+    }  
 })
+
 
 
 minionsRouter.post('/', isValid, (req, res, next)=>{
