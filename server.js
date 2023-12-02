@@ -22,8 +22,14 @@ const morgan = require('morgan');
 app.use(morgan('dev'));
 
 // Mount your existing apiRouter below at the '/api' path.
-const apiRouter = require('./server/api');
-app.use('/api', apiRouter)
+const minionsRouter = require('./server/minions');
+app.use('/api/minions', minionsRouter)
+
+const ideasRouter = require('./server/ideas');
+app.use('/api/ideas', ideasRouter)
+
+const meetingsRouter = require('./server/meetings')
+app.use('/api/meetings', meetingsRouter)
 
 // This conditional is here for testing purposes:
 if (!module.parent) { 
