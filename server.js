@@ -21,7 +21,7 @@ app.use(bodyParser.json())
 const morgan = require('morgan');
 app.use(morgan('dev'));
 
-// Mount your existing apiRouter below at the '/api' path.
+// Mount your existing apiRouters below at the '/api' path.
 const minionsRouter = require('./server/minions');
 app.use('/api/minions', minionsRouter)
 

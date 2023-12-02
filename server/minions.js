@@ -12,82 +12,64 @@ const {
     } = require('./db')
 
 /*------minions Routes-----*/
+const isValid = (req, res, next)=>{
+    const receivedData = req.body;
+    if(!isValidMinion(receivedData)){
+        return res.status(400).send('invalid minion')
+    } else {
+        next();
+    }
+}
+
+minionsRouter.use('/', (req, res, next)=>{
+    const minions = getAllFromDatabase('minions');
+    if(typeof minions === 'undefined'){
+        return res.status(404).send('not found');
+    } else {
+        req.minions = minions;
+        next();
+    }
+})
+
+minionsRouter.param('minionId', (req, res, next, id)=>{
+    const minionId = id;
+    const foundMinion = getFromDatabaseById('minions', minionId);
+    if(!foundMinion){
+        res.status(404).send('Not found');     
+    } else if(!isValidMinion(foundMinion)){
+        res.status(400).send('invalid minion');
+    } else {
+        req.foundMinion = foundMinion;
+        req.minionId = minionId;
+        next();
+    }
+})
 
 minionsRouter.get('/', (req, res, next)=>{
-    const minions = getAllFromDatabase('minions');
+    const minions = req.minions;
     //console.log(minions)
-    if(minions){
-        res.status(200).json(minions);
-    } else {
-        res.status(404).send();
-    }
-   
+    res.status(200).json(minions);  
 })
 
 
-minionsRouter.post('/', (req, res, next)=>{
-    const newMinion = req.body;
-    
-    console.log(newMinion);
-    if(isValidMinion(newMinion)){
-        addToDatabase('minions', newMinion);
-        res.status(201).json(newMinion);
-    } else {
-        res.status(404).send('invalid minion');
-    }
-    
+minionsRouter.post('/', isValid, (req, res, next)=>{
+        addToDatabase('minions', req.body);
+        res.status(201).json(req.body); 
 })
 
-minionsRouter.get('/:minionId', (req, res, next)=>{
-    const id = req.params.minionId;
-    const foundMinion = getFromDatabaseById('minions', id);
-    if(foundMinion){
-        if(isValidMinion(foundMinion)){
-            res.status(200).json(foundMinion)
-        } else {
-            res.status(404).send('Not Valid id');
-        }
-        
-    } else {
-        res.status(404).send('Not found');
-    }
+minionsRouter.get('/:minionId', (req, res, next)=>{ 
+    const minion = req.foundMinion;  
+    res.status(200).json(minion);       
 })
 
-minionsRouter.put('/:minionId', (req, res, next)=>{
-    const id = req.params.minionId;
-    const foundMinion = getFromDatabaseById('minions', id)
-    //console.log("FOUND: ", foundMinion)
-    const dataReceived = req.body;
-    //console.log("received data: ", dataReceived);
-    if(foundMinion){
-        if(isValidMinion(foundMinion)){
-            const updatedData = updateInstanceInDatabase('minions', dataReceived);
-             //console.log("Updated data: ", updatedData)
-             res.status(200).json(updatedData);
-        } else {
-            res.status(404).send('invalid id');
-        }
-    
-    } else {
-        res.status(404).send('Not found');
-    }
+minionsRouter.put('/:minionId', isValid, (req, res, next)=>{
+    const updatedData = updateInstanceInDatabase('minions', req.body);
+    res.status(200).json(updatedData);      
 })
 
 minionsRouter.delete('/:minionId', (req, res, next)=>{
-    const id = req.params.minionId;
-    const foundMinion = getFromDatabaseById('minions', id);
-    //console.log("Deleted item", foundMinion);
-    if(foundMinion){
-        if(isValidMinion(foundMinion)){
-            deleteFromDatabasebyId('minions', id);
-            res.status(204).send('deleted');
-        } else {
-            res.status(404).send('invalid id');
-        }
-   
-    } else {
-        res.status(404).send('failed to delete');
-    }
+    deleteFromDatabasebyId('minions', req.minionId);
+    res.status(204).send('deleted');
 })
 
 module.exports = minionsRouter;

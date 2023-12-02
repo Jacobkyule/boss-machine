@@ -25,15 +25,9 @@ const {
 
     meetingsRouter.post('/', (req, res, next)=>{
         const newMeeting = createMeeting();
-        
         //console.log(newMeeting);
-        if(isValidMeeting(newMeeting)){
             addToDatabase('meetings', newMeeting);
             res.status(201).json(newMeeting);
-        } else {
-            res.status(404).send('invalid meeting');
-        }
-        
     })
 
 

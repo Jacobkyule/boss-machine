@@ -15,82 +15,65 @@ const {
 
     /*------ideas Routes-----*/
 
-    ideasRouter.get('/', (req, res, next)=>{
-        const ideas = getAllFromDatabase('ideas');
-        //console.log(ideas)
-        if(ideas){
-            res.status(200).json(ideas);
+    const isValid = (req, res, next)=>{
+        const receivedData = req.body;
+        if(!isValidIdea(receivedData)){
+            return res.status(400).send('invalid idea')
         } else {
-            res.status(404).send();
+            next();
         }
-       
+    }
+    
+    ideasRouter.use('/', (req, res, next)=>{
+        const ideas = getAllFromDatabase('ideas');
+        if(typeof ideas === 'undefined'){
+            return res.status(404).send('not found');
+        } else {
+            req.ideas = ideas;
+            next();
+        }
+    })
+    
+    ideasRouter.param('ideaId', (req, res, next, id)=>{
+        const ideaId = id;
+        const foundIdea = getFromDatabaseById('ideas', ideaId);
+        if(!foundIdea){
+            res.status(404).send('Not found');     
+        } else if(!isValidIdea(foundIdea)){
+            res.status(400).send('invalid idea');
+        } else {
+            req.foundIdea = foundIdea;
+            req.ideaId = ideaId;
+            next();
+        }
+    })
+    
+
+    ideasRouter.get('/', (req, res, next)=>{
+        const ideas = req.ideas;
+        res.status(200).json(ideas); 
     })
 
 
-    ideasRouter.post('/', checkMillionDollarIdea, (req, res, next)=>{
-        const newIdea = req.body;
-        
-        console.log(newIdea);
-        if(isValidIdea(newIdea)){
-            addToDatabase('ideas', newIdea);
-            res.status(201).json(newIdea);
-        } else {
-            res.status(400).send('Bad request');
-        }
-        
+    ideasRouter.post('/', checkMillionDollarIdea, isValid, (req, res, next)=>{
+            addToDatabase('ideas', req.body);
+            res.status(201).json(req.body);
     })
 
     ideasRouter.get('/:ideaId', (req, res, next)=>{
-        const id = req.params.ideaId;
-        const foundIdea = getFromDatabaseById('ideas', id);
-        if(foundIdea){
-            if(isValidIdea(foundIdea)){
-                res.status(200).json(foundIdea)
-            } else {
-                res.status(404).send('Not valid id');
-            }
-            
-        } else {
-            res.status(404).send('Not found');
-        }
+        const idea = req.foundIdea;
+        res.status(200).json(idea);     
     })
 
-    ideasRouter.put('/:ideaId', (req, res, next)=>{
-        const id = req.params.ideaId;
-        const foundIdea = getFromDatabaseById('ideas', id)
-        //console.log("FOUND: ", foundIdea)
-        const dataReceived = req.body;
-        //console.log("received data: ", dataReceived);
-
-        if(foundIdea){
-            if(isValidIdea(foundIdea)){
-                const updatedData = updateInstanceInDatabase('ideas', dataReceived);
-                 //console.log("Updated data: ", updatedData)
-                 res.status(200).json(updatedData);
-            } else {
-                res.status(404).send('invalid id');
-            }
-        
-        } else {
-            res.status(404).send('Not found');
-        }
+    ideasRouter.put('/:ideaId', isValid, (req, res, next)=>{ 
+        const updatedData = updateInstanceInDatabase('ideas', req.body);
+        res.status(200).json(updatedData);       
     })
 
     ideasRouter.delete('/:ideaId', (req, res, next)=>{
-        const id = req.params.ideaId;
-        const foundIdea = getFromDatabaseById('ideas', id);
-        //console.log("Deleted item", foundIdea);
-        if(foundIdea){
-            if(isValidIdea(foundIdea)){
-                deleteFromDatabasebyId('ideas', id);
-                res.status(204).send('deleted');
-            } else {
-                res.status(404).send('invalid id');
-            }
+        deleteFromDatabasebyId('ideas', req.ideaId);
+        res.status(204).send('deleted');
             
-        } else {
-            res.status(404).send('failed to delete');
-        }
     })
 
 module.exports = ideasRouter;
