@@ -1,6 +1,9 @@
 const express = require('express');
 const apiRouter = express.Router();
 
+//checkMillionDollarIdea
+const checkMillionDollarIdea = require('./checkMillionDollarIdea');
+
 const { 
     isValidMeeting,
     isValidIdea,
@@ -14,6 +17,7 @@ const {
     deleteFromDatabasebyId,
     deleteAllFromDatabase, 
     } = require('./db')
+
 
     /*------minions Routes-----*/
 
@@ -32,7 +36,7 @@ const {
     apiRouter.post('/minions', (req, res, next)=>{
         const newMinion = req.body;
         
-        //console.log(newMinion);
+        console.log(newMinion);
         if(isValidMinion(newMinion)){
             addToDatabase('minions', newMinion);
             res.status(201).json(newMinion);
@@ -108,10 +112,10 @@ const {
     })
 
 
-    apiRouter.post('/ideas', (req, res, next)=>{
+    apiRouter.post('/ideas', checkMillionDollarIdea, (req, res, next)=>{
         const newIdea = req.body;
         
-        //console.log(newIdea);
+        console.log(newIdea);
         if(isValidIdea(newIdea)){
             addToDatabase('ideas', newIdea);
             res.status(201).json(newIdea);
