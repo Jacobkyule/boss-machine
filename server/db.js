@@ -264,6 +264,7 @@ const deleteAllFromDatabase = (modelType) => {
 }
 
 module.exports = {
+  isValidWork,
   isValidMeeting,
   isValidIdea,
   isValidMinion,
@@ -275,4 +276,5 @@ module.exports = {
   updateInstanceInDatabase,
   deleteFromDatabasebyId,
   deleteAllFromDatabase,
+  findDataArrayByName,
 };
